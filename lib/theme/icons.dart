@@ -7,14 +7,6 @@ Image imageDJLogo() {
   );
 }
 
-Widget iconsOnboarding(bool active) {
-  return Image.asset(
-    'assets/icons/onboarding.png',
-    height: 20,
-    color: active ? DJColors.primary : DJColors.onSurfaceLow,
-  );
-}
-
 Widget iconsMusicLibrary(bool active) {
   return Icon(Icons.queue_music,
       color: active ? DJColors.primary : DJColors.onSurfaceLow,

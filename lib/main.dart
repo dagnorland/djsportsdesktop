@@ -1,47 +1,70 @@
-import 'package:djsportsdesktop/menu/sidebar_menu.dart';
+import 'package:djsportsdesktop/core/core.dart';
+import 'package:djsportsdesktop/core/ui/global_loading_overlay.widget.dart';
+import 'package:djsportsdesktop/data/local_storage.dart';
+import 'package:djsportsdesktop/data/repository/playlist_repository.dart';
+import 'package:djsportsdesktop/pages/main/main_page.dart';
+import 'package:djsportsdesktop/pages/playlists/cubit/playlists_cubit.dart';
+//import 'package:djsportsdesktop/pages/splash/splash_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await LocalStorage.instance.init();
+  final PlaylistRepository playlistRepository = PlaylistRepository();
+
+  runApp(
+    DJSportsDesktopApp(
+      playlistRepository: playlistRepository,
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class DJSportsDesktopApp extends StatelessWidget {
+  const DJSportsDesktopApp({
+    Key? key,
+    required this.playlistRepository,
+  }) : super(key: key);
 
-  // This widget is the root of your application.
+  final PlaylistRepository playlistRepository;
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Sidebar ui',
-      theme: ThemeData(
-        // Define the default brightness and colors.
-        brightness: Brightness.dark,
-        primaryColor: Colors.lightBlue[800],
+    return MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider<PlaylistRepository>(
+              create: (_) => playlistRepository),
+        ],
+        child: BlocProvider<PlaylistsCubit>(
+          create: (context) => PlaylistsCubit(
+            playlistRepository: context.read(),
+          ),
+          child: const DJSportsDesktopAppView(),
+        ));
+  }
+}
 
-        // Define the default font family.
-        fontFamily: 'Georgia',
+class DJSportsDesktopAppView extends StatelessWidget {
+  const DJSportsDesktopAppView({super.key});
 
-        // Define the default `TextTheme`. Use this to specify the default
-        // text styling for headlines, titles, bodies of text, and more.
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
-          titleLarge: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic),
-          bodyMedium: TextStyle(fontSize: 14.0, fontFamily: 'Hind'),
-        ),
-      ),
-      home: Scaffold(
-        body: const SidebarPage(),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('Yay! Button Pressed!'),
-            ));
-          },
-          backgroundColor: Colors.green,
-          child: const Icon(Icons.navigation),
-        ),
-      ),
+  @override
+  Widget build(BuildContext context) {
+    return ThemeBuilder(
+      builder: (context, theme) {
+        return GlobalLoadingOverlayWidget(
+          child: MaterialApp(
+            title: 'DJ Sports Desktop',
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('no'),
+            debugShowCheckedModeBanner: false,
+            theme: theme,
+            home: const MainPage(),
+          ),
+        );
+      },
     );
   }
 }
